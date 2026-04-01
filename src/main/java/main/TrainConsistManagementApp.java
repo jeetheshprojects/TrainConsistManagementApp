@@ -34,6 +34,51 @@ public class TrainConsistManagementApp {
         System.out.println("=== All use cases complete ===");
     }
 
+    static List<Bogie> sortBogiesByCapacity(List<Bogie> bogies, boolean ascending) {
+        if (ascending) {
+            return bogies.stream()
+                    .sorted(Comparator.comparingInt(Bogie::getCapacity))
+                    .collect(Collectors.toList());
+        }
+        return bogies.stream()
+                .sorted(Comparator.comparingInt(Bogie::getCapacity).reversed())
+                .collect(Collectors.toList());
+    }
+
+    static List<Bogie> filterBogiesByMinCapacity(List<Bogie> bogies, int minCapacity) {
+        return bogies.stream()
+                .filter(b -> b.getCapacity() > minCapacity)
+                .collect(Collectors.toList());
+    }
+
+    static Map<String, List<Bogie>> groupBogiesByName(List<Bogie> bogies) {
+        return bogies.stream()
+                .collect(Collectors.groupingBy(Bogie::getName));
+    }
+
+    static int countTotalSeats(List<Bogie> bogies) {
+        return bogies.stream()
+                .mapToInt(Bogie::getCapacity)
+                .sum();
+    }
+
+    static boolean isValidTrainId(String trainId) {
+        return Pattern.compile("TRN-\\d{4}")
+                .matcher(trainId)
+                .matches();
+    }
+
+    static boolean isValidCargoCode(String cargoCode) {
+        return Pattern.compile("PET-[A-Z]{2}")
+                .matcher(cargoCode)
+                .matches();
+    }
+
+    static boolean isGoodsBogieListSafe(List<GoodsBogie> goodsBogies) {
+        return goodsBogies.stream()
+                .allMatch(b -> !"Cylindrical".equals(b.getType()) || "Petroleum".equals(b.getCargo()));
+    }
+
     private static void uc7SortBogies() throws InvalidCapacityException {
         System.out.println("--- UC7: Sort Bogies Using Comparator ---");
         System.out.println();
@@ -201,10 +246,8 @@ public class TrainConsistManagementApp {
         System.out.println();
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter Train ID (format: TRN-1234): ");
-        String trainId = scanner.nextLine();
-        System.out.print("Enter Cargo Code (format: PET-AB): ");
-        String cargoCode = scanner.nextLine();
+        String trainId = readLineOrDefault(scanner, "Enter Train ID (format: TRN-1234): ", "TRN-1234");
+        String cargoCode = readLineOrDefault(scanner, "Enter Cargo Code (format: PET-AB): ", "PET-AB");
 
         Pattern trainIdPattern = Pattern.compile("TRN-\\d{4}");
         boolean isTrainIdValid = trainIdPattern.matcher(trainId).matches();
@@ -223,6 +266,18 @@ public class TrainConsistManagementApp {
             System.out.println("✗ Invalid input detected. Please correct and try again.");
         }
         System.out.println();
+    }
+
+    private static String readLineOrDefault(Scanner scanner, String prompt, String defaultValue) {
+        System.out.print(prompt);
+        if (scanner.hasNextLine()) {
+            String input = scanner.nextLine().trim();
+            if (!input.isEmpty()) {
+                return input;
+            }
+        }
+        System.out.println(defaultValue + " (default)");
+        return defaultValue;
     }
 
     private static void uc12SafetyComplianceCheck() {
